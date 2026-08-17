@@ -1,2 +1,2 @@
 #!/usr/bin/env srvsh
-sdl-runner paint { ./paint }
+sdl-runner paint { ./paint-canvas }

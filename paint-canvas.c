@@ -57,21 +57,14 @@ void handle_mouse(
 	handle_mouse_nonblock(fd, opcode, buffer, size, header, context);
 	struct pollfd mouse_pollfd = { .fd = fd };
 	do {
-		mouse_pollfd = pollopfd(mouse_pollfd, handle_mouse_nonblock, NULL, 0);
+		static const int instant_timeout = 0;
+		mouse_pollfd = pollopfd(mouse_pollfd, handle_mouse_nonblock, NULL, instant_timeout);
 	} while (mouse_pollfd.revents & POLLIN);
 	gamesh_graphic_commit(canvas);
 }
 
 int main()
 {
-	opcode_db *db = open_opcode_db();
-	if (!db)
-		pexit("db");
-
-	gamesh_sdl_event_mouse = get_opcode(db, "gamesh_sdl_event_mouse");
-	if (gamesh_sdl_event_mouse < 0)
-		pexit("get_opcode");
-
 	canvas = gamesh_create_graphic(0, 0, 640, 480, SDL_PIXELFORMAT_RGBA4444);
 	if (!canvas.buffer)
 		pexit("gamesh_create_graphic");
@@ -83,12 +76,23 @@ int main()
 
 	SDL_ClearSurface(brush, 1.f, 1.f, 1.f, 1.f);
 
+	opcode_db *db = open_opcode_db();
+	if (!db)
+		pexit("db");
+
+	gamesh_sdl_event_mouse = get_opcode(db, "gamesh_sdl_event_mouse");
+	if (gamesh_sdl_event_mouse < 0)
+		pexit("get_opcode");
+
+	close_opcode_db(db);
+
 	mouse_fd = gamesh_event_listen(gamesh_sdl_event_mouse);
 	if (mouse_fd < 0)
 		pexit("gamesh_event_listen");
 
+	static const int never_timeout = -1;
 	struct pollfd mouse_pollfd = { .fd = mouse_fd };
 	do {
-		mouse_pollfd = pollopfd(mouse_pollfd, handle_mouse, NULL, -1);
+		mouse_pollfd = pollopfd(mouse_pollfd, handle_mouse, NULL, never_timeout);
 	} while (mouse_pollfd.revents & POLLIN);
 }
