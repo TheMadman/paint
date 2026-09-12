@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define pexit(msg) perror(msg), exit(EXIT_FAILURE)
+#define pexit(msg) fprintf(stderr, "%s:", app_name), perror(msg), exit(EXIT_FAILURE)
 
+const char *app_name = NULL;
 int gamesh_sdl_event_mouse = -1;
 int mouse_fd = -1;
 bool click = false;
@@ -63,8 +64,9 @@ void handle_mouse(
 	gamesh_graphic_commit(canvas);
 }
 
-int main()
+int main(int argc, char **argv)
 {
+	app_name = argv[0];
 	canvas = gamesh_create_graphic(0, 0, 640, 480, SDL_PIXELFORMAT_RGBA4444);
 	if (!canvas.buffer)
 		pexit("gamesh_create_graphic");
